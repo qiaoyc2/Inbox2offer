@@ -31,6 +31,18 @@ enum EmailEventType {
   REJECTION
   OFFER
   UNRELATED
+  UNKNOWN
+}
+
+enum EmailDisposition {
+  JOB_RELATED
+  NEEDS_REVIEW
+  IGNORED
+}
+
+enum EmailParserType {
+  RULE_BASED
+  AI
 }
 
 enum ReviewItemType {
@@ -68,13 +80,22 @@ model RawEmail {
   receivedAt               DateTime
   processed                Boolean         @default(false)
   classification           EmailEventType?
-  classificationConfidence Float?          // BACKEND-ONLY: stripped by DTO layer
+  classificationConfidence Float?          // BACKEND-ONLY: stripped by RawEmailDTO; only EmailParseDTO (dev tooling) exposes it
+  // Parse metadata. All null until the email is parsed; disposition is set on every parse.
+  disposition              EmailDisposition?
+  parsedCompany            String?
+  parsedPosition           String?
+  parserType               EmailParserType?
+  parserVersion            String?
+  parseEvidence            Json?
+  parseSecondarySignals    Json?
   createdAt                DateTime        @default(now())
   event                    ApplicationEvent?
   reviewItems              ReviewItem[]
 
   @@index([receivedAt])
   @@index([processed])
+  @@index([disposition])
   @@index([threadId])
   @@index([sender])
 }
